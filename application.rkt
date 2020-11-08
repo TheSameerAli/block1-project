@@ -23,8 +23,9 @@
 (define start-app (
     (send frame show #t)
     (sleep/yield 1)
-    (render-traffic-light dc 100 100)
-    (render-traffic-light dc 300 200)
-    (render-traffic-light dc 500 100)
+    (render-traffic-light dc 100 100 0)
+    (render-traffic-light dc 300 200 3)
+    (render-traffic-light dc 500 100 1)
+    (render-traffic-light dc 700 100 2)
   )
 )
