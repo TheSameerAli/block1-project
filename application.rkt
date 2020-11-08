@@ -10,8 +10,8 @@
 ;; Setup the window for our application
 ;; Width = 900px ; Height 500px
 (define frame (new frame% [label "Traffic Light Simulation"] 
-                   [width 900]
-                   [height 500]))
+                   [width 1200]
+                   [height 800]))
 
 ;; Draws a canvas on the window which lets us define 
 ;; a device context (dc) which allows us to draw on the screen
@@ -23,6 +23,8 @@
 (define start-app (
     (send frame show #t)
     (sleep/yield 1)
-    (render-traffic-light dc)
+    (render-traffic-light dc 100 100)
+    (render-traffic-light dc 300 200)
+    (render-traffic-light dc 500 100)
   )
 )

@@ -16,21 +16,39 @@
 ;; Define our brushes (for different colours)
 (define no-pen (make-object pen% "BLACK" 1 'transparent))
 (define no-brush (make-object brush% "BLACK" 'transparent))
-(define blue-brush (make-object brush% "BLUE" 'solid))
-(define yellow-brush (make-object brush% "YELLOW" 'solid))
-(define red-pen (make-object pen% "RED" 2 'solid))
+(define red-brush (make-object brush% "RED" 'solid))
+(define amber-brush (make-object brush% "YELLOW" 'solid))
+(define green-brush (make-object brush% "GREEN" 'solid))
+(define black-pen (make-object pen% "BLACK" 2 'solid))
 
-(define (render-traffic-light dc) 
-      (send dc set-pen no-pen)
-      (send dc set-brush blue-brush)
-      (send dc draw-ellipse 50 50 200 200)
-    
-      (send dc set-brush yellow-brush)
-      (send dc draw-rectangle 100 100 10 10)
-      (send dc draw-rectangle 200 100 10 10)
-    
-      (send dc set-brush no-brush)
-      (send dc set-pen red-pen)
-      (let ([-pi (atan 0 -1)])
-        (send dc draw-arc 75 75 150 150 (* 5/4 -pi) (* 7/4 -pi)))
+(define (render-traffic-light dc x y)
+        ;; Reset the brushes
+        (send dc set-pen no-pen)
+        (send dc set-brush no-brush)
+
+        ;; Sets a black pen and draws a container
+        ;; for traffic lights (a box)
+        (send dc set-pen black-pen)
+        (send dc draw-rectangle x y 150 270)
+
+        ;; Co-ordinates of traffic lights
+        ;; and sizes variables
+        (define light-x (+ x 40))
+        (define red-y (+ y 15))
+        (define amber-y (+ red-y 80))
+        (define green-y (+ amber-y 80))
+        (define traffic-light-size 70)
+
+
+        ;; Draws the red light
+        (send dc set-brush red-brush)
+        (send dc draw-ellipse light-x red-y traffic-light-size traffic-light-size)
+
+        ;; Draws the amber light
+        (send dc set-brush amber-brush)
+        (send dc draw-ellipse light-x amber-y traffic-light-size traffic-light-size)
+
+        ;; Drawas the green light
+        (send dc set-brush green-brush)
+        (send dc draw-ellipse light-x green-y traffic-light-size traffic-light-size)
 )
