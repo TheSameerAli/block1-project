@@ -23,25 +23,21 @@
         (define green-brush (make-object brush% "GREEN" 'solid))
         (define black-pen (make-object pen% "BLACK" 2 'solid))
 
-        (define/public (render) 
-            ;; Reset the brushes
-            (send dc set-pen no-pen)
-            (send dc set-brush no-brush)
+        (define/public (set-state s) 
+            (set! state s)
+            (refresh-lights)
+        )
 
-            ;; Sets a black pen and draws a container
-            ;; for traffic lights (a box)
-            (send dc set-pen black-pen)
-            (send dc set-brush black-brush)
-            (send dc draw-rectangle x y 150 270)
+        (define (refresh-lights)
+            (draw-lights)
+        )
 
-            ;; Co-ordinates of traffic lights
-            ;; and sizes variables
+        (define (draw-lights)
             (define light-x (+ x 40))
             (define red-y (+ y 15))
             (define amber-y (+ red-y 80))
             (define green-y (+ amber-y 80))
             (define light-size 70)
-
             ;; Draws the red light (only if state is 0 or 1)
             (cond 
                 [(or (= state 0) (= state 1)) 
@@ -57,7 +53,6 @@
             ;; Draws the amber light (only if state is 1 or 3)
             (cond 
                 [(or (= state 1) (= state 3)) 
-                    (println "true")
                     (send dc set-brush amber-brush)
                     (send dc draw-ellipse light-x amber-y light-size light-size)
                 ]
@@ -78,6 +73,27 @@
                     (send dc draw-ellipse light-x green-y light-size light-size)
                 ]
             )
+        )
+        
+
+        (define/public (render) 
+            ;; Reset the brushes
+            (send dc set-pen no-pen)
+            (send dc set-brush no-brush)
+
+            ;; Calls the procedure to draw the traffic light box
+            (draw-box)
+
+            ;; Calls the procedure to draw the lights
+            (draw-lights)
+        )
+
+        (define (draw-box) 
+            ;; Sets a black pen and draws a container
+            ;; for traffic lights (a box)
+            (send dc set-pen black-pen)
+            (send dc set-brush black-brush)
+            (send dc draw-rectangle x y 150 270)
         )
     )
 )

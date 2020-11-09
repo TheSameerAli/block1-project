@@ -8,7 +8,7 @@
 
 
 ;; Setup the window for our application
-;; Width = 900px ; Height 500px
+;; Width = 1200px ; Height 800px
 (define frame (new frame% [label "Traffic Light Simulation"] 
                    [width 1200]
                    [height 800]))
@@ -20,9 +20,9 @@
                             (initiate-traffic-lights dc))]))
 (define dc (send canvas get-dc))
 
+(define light-1 (new traffic-light% [dc dc] [x 100] [y 100] [state 0]))
 
 (define (initiate-traffic-lights dc) 
-  (define light-1 (new traffic-light% [dc dc] [x 100] [y 100] [state 2]))
   (send light-1 render)
 )
 
@@ -30,5 +30,13 @@
 (define start-app (
     (send frame show #t)
     (initiate-traffic-lights dc)
+    (sleep/yield 2)
+    (send light-1 set-state 1)
+    (sleep/yield 2)
+    (send light-1 set-state 2)
+    (sleep/yield 2)
+    (send light-1 set-state 3)
+    (sleep/yield 2)
+    (send light-1 set-state 0)
   )
 )
