@@ -15,17 +15,22 @@
 
 ;; Draws a canvas on the window which lets us define 
 ;; a device context (dc) which allows us to draw on the screen
-(define canvas (new canvas% [parent frame]))
+(define canvas (new canvas% [parent frame] 
+                            [paint-callback (λ (can dc) 
+                            (initiate-traffic-lights dc))]))
 (define dc (send canvas get-dc))
 
+
+(define (initiate-traffic-lights dc) 
+  (render-traffic-light dc 100 100 0)
+  ;; (render-traffic-light dc 300 200 3)
+  ;; (render-traffic-light dc 500 100 1)
+  ;; (render-traffic-light dc 700 100 2)
+)
 
 ;; Runs the main application
 (define start-app (
     (send frame show #t)
-    (sleep/yield 1)
-    (render-traffic-light dc 100 100 0)
-    (render-traffic-light dc 300 200 3)
-    (render-traffic-light dc 500 100 1)
-    (render-traffic-light dc 700 100 2)
+    (initiate-traffic-lights dc)
   )
 )
