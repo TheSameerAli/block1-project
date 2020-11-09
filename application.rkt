@@ -22,10 +22,8 @@
 
 
 (define (initiate-traffic-lights dc) 
-  (render-traffic-light dc 100 100 0)
-  ;; (render-traffic-light dc 300 200 3)
-  ;; (render-traffic-light dc 500 100 1)
-  ;; (render-traffic-light dc 700 100 2)
+  (define light-1 (new traffic-light% [dc dc] [x 100] [y 100] [state 2]))
+  (send light-1 render)
 )
 
 ;; Runs the main application
