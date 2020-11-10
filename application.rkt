@@ -1,6 +1,6 @@
 #lang racket/gui
 
-(require "traffic-light.rkt")
+(require "traffic-light.rkt" "ped-light.rkt")
 
 ;; Export all the variables off the scipt
 ;; so it can be accessed by other scripts
@@ -21,9 +21,11 @@
 (define dc (send canvas get-dc))
 
 (define light-1 (new traffic-light% [dc dc] [x 100] [y 100] [state 0]))
+(define ped-light (new ped-light% [dc dc] [x 300] [y 100] [state 0]))
 
 (define (initiate-traffic-lights dc) 
   (send light-1 render)
+  (send ped-light render)
 )
 
 ;; Runs the main application
