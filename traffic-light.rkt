@@ -1,12 +1,24 @@
 #lang racket/gui
 
-(provide traffic-light%)
+;; #### Main Traffic Light Component #####
+;; Authors: Sameer Ali
+;; #############################################
+;;                DESCRIPTION
+;; #############################################
+;; This class allows us to create instances of main 3-light
+;; traffic light and render them on the screen. This class also
+;; provide methods to change the light states which update the
+;; graphics in real time
+;; ##############################################
+;;                 STATES
+;;                0 = RED
+;;                1 = Amber+Red
+;;                2 = Green
+;;                3 = Amber
+;; ###############################################
 
-;; 0 = Red
-;; 1 = Amber+Red
-;; 2 = Green
-;; 3 = Amber
-;; Define our brushes (for different colours)
+
+(provide traffic-light%)
 
 
 (define traffic-light%

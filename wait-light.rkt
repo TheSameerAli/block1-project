@@ -1,9 +1,21 @@
 #lang racket/gui
 
-(provide wait-light%)
+;; #### Main Traffic Light Component #####
+;; Authors: Sameer Ali, Jeremy Arland
+;; #############################################
+;;                DESCRIPTION
+;; #############################################
+;; This class allows us to create instances of pedestrain
+;; wait light and render them on the screen. This class also
+;; provide methods to change the light states which update the
+;; graphics in real time
+;; ##############################################
+;;                 STATES
+;;                0 = OFF
+;;                1 = ON
+;; ###############################################
 
-;; 0 = Off
-;; 1 = On
+(provide wait-light%)
 
 
 (define wait-light%

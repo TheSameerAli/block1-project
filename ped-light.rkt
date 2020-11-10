@@ -1,16 +1,31 @@
 #lang racket/gui
 
-(provide ped-light%)
+;; #### PEDESTRIAN Traffic Light Component #####
+;; Authors: Sameer Ali, Jeremy Arland
+;; #############################################
+;;                DESCRIPTION
+;; #############################################
+;; This class allows us to create instances of pedestrain
+;; traffic light light and render them on the screen. This class also
+;; provide methods to change the light states which update the
+;; graphics in real time
+;; ##############################################
+;;                 STATES
+;;                0 = RED
+;;                1 = GREEN
+;; ###############################################
 
-;; 0 = Red
-;; 1 = Green
+;; Export this class so it can used by other scripts
+
+(provide ped-light%)
 
 
 (define ped-light%
     (class object%
         (super-new)
-        (init-field dc x y state)
+        (init-field dc x y state) ;; Constructor method accepting variables
 
+        ;; Initialising brushes and pens to be used for drawing
         (define no-pen (make-object pen% "BLACK" 1 'transparent))
         (define no-brush (make-object brush% "BLACK" 'transparent))
         (define black-brush (make-object brush% "BLACK" 'solid))
@@ -19,20 +34,24 @@
         (define green-brush (make-object brush% "GREEN" 'solid))
         (define black-pen (make-object pen% "BLACK" 2 'solid))
 
+        ;; Publicly exposed method to allow states to be changed from other scripts
         (define/public (set-state s) 
             (set! state s)
             (refresh-lights)
         )
 
+        ;; Method used to refresh the lights (re-draw) them.
+        ;; Used when states are changed
         (define (refresh-lights)
             (draw-lights)
         )
 
+        ;; Main method which draws the lights
         (define (draw-lights)
-            (define light-x (+ x 30))
-            (define red-y (+ y 15))
-            (define green-y (+ red-y 80))
-            (define light-size 60)
+            (define light-x (+ x 30)) ; x-axis position of lights (circles)
+            (define red-y (+ y 15)) ; y-axis for red light position
+            (define green-y (+ red-y 80)) ; y-axis for green light position
+            (define light-size 60) ; size of the light (circle)
         
             ;; Draws the red light (only if state is 0)
             (cond 
