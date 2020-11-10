@@ -1,6 +1,6 @@
 #lang racket/gui
 
-(require "traffic-light.rkt" "ped-light.rkt")
+(require "traffic-light.rkt" "ped-light.rkt" "wait-light.rkt")
 
 ;; Export all the variables off the scipt
 ;; so it can be accessed by other scripts
@@ -22,10 +22,12 @@
 
 (define light-1 (new traffic-light% [dc dc] [x 100] [y 100] [state 0]))
 (define ped-light (new ped-light% [dc dc] [x 300] [y 100] [state 0]))
+(define wait-light (new wait-light% [dc dc] [x 500] [y 100] [state 0]))
 
 (define (initiate-traffic-lights dc) 
   (send light-1 render)
-  (send ped-light render)
+  ;;(send ped-light render)
+  (send wait-light render)
 )
 
 ;; Runs the main application
@@ -33,12 +35,6 @@
     (send frame show #t)
     (initiate-traffic-lights dc)
     (sleep/yield 2)
-    (send light-1 set-state 1)
-    (sleep/yield 2)
-    (send light-1 set-state 2)
-    (sleep/yield 2)
-    (send light-1 set-state 3)
-    (sleep/yield 2)
-    (send light-1 set-state 0)
+    (send wait-light set-state 1)
   )
 )
