@@ -20,32 +20,19 @@
                             (initiate-traffic-lights dc))]))
 (define dc (send canvas get-dc))
 
-(define light-1 (new traffic-light% [dc dc] [x 100] [y 200] [state 0]))
-(define light-2 (new traffic-light% [dc dc] [x 300] [y 300] [state 0]))
-(define light-3 (new traffic-light% [dc dc] [x 500] [y 200] [state 0]))
-(define ped-light (new ped-light% [dc dc] [x 900] [y 200] [state 0]))
-(define wait-light (new wait-light% [dc dc] [x 900] [y 390] [state 0]))
+(define light-1 (new traffic-light% [dc dc] [x 100] [y 100] [state 0]))
+(define ped-light (new ped-light% [dc dc] [x 300] [y 100] [state 0]))
+(define wait-light (new wait-light% [dc dc] [x 500] [y 100] [state 0]))
 
 (define (initiate-traffic-lights dc) 
   (send light-1 render)
-  (send light-2 render)
-  (send light-3 render)
-  (send ped-light render)
+  ;;(send ped-light render)
   (send wait-light render)
 )
-
-( define f ( new frame% [ label "TIME OF THE DAY" ] ) )
-( define my-box
-  ( new choice% [ parent f ]
-       [ label " SELECT " ]
-       [ choices ( list "DAY" "NIGHT" ) ] ) )
-
-
 
 ;; Runs the main application
 (define start-app (
     (send frame show #t)
-    (send f show #t)
     (initiate-traffic-lights dc)
     (sleep/yield 2)
     (send wait-light set-state 1)
