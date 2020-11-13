@@ -1,2 +1,8 @@
 compiled/
 *.t
+application.rkt~
+traffic-light.rkt~
+ped-light.rkt~
+wait-light.rkt~
+main.rkt~
+.DS_Store
