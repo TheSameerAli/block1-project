@@ -3,4 +3,4 @@
 (require "application.rkt")
 
 
-start-app
+(start-app)

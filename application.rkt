@@ -26,6 +26,22 @@
 (define ped-light (new ped-light% [dc dc] [x 900] [y 200] [state 0]))
 (define wait-light (new wait-light% [dc dc] [x 900] [y 390] [state 0]))
 
+
+;; Main application functionality
+(define is-running #t)
+
+(define (start-simulation . ignored-args)
+    (send wait-light set-state 0)
+    (send wait-light set-state 1)
+    (sleep/yield 2)
+    (send wait-light set-state 0)
+    (cond 
+      [(and is-running #t) 
+        (start-simulation)   
+      ]
+    )
+)
+
 (define (initiate-traffic-lights dc) 
   (send light-1 render)
   (send light-2 render)
@@ -34,20 +50,25 @@
   (send wait-light render)
 )
 
-( define f ( new frame% [ label "TIME OF THE DAY" ] ) )
-( define my-box
-  ( new choice% [ parent f ]
-       [ label " SELECT " ]
-       [ choices ( list "DAY" "NIGHT" ) ] ) )
+(define my-box
+  ( new choice% [ parent frame ]
+       [label " SELECT "]
+       [choices (list "DAY" "NIGHT")]))
+
+
+(define start-button (new button% 
+  [parent frame] 
+  [label "Start Simulation"] 
+  [callback start-simulation]
+))
+(define stop-button (new button% [parent frame] [label "Stop and Reset"]))
+
 
 
 
 ;; Runs the main application
-(define start-app (
+(define (start-app) 
     (send frame show #t)
-    (send f show #t)
     (initiate-traffic-lights dc)
-    (sleep/yield 2)
-    (send wait-light set-state 1)
-  )
+    
 )
