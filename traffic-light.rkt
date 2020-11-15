@@ -44,6 +44,25 @@
             (draw-lights)
         )
 
+        (define/public (next-state) 
+            (cond 
+                [(= state 0) 
+                    (set-state 1)
+                ]
+
+                [(= state 1) 
+                    (set-state 2)
+                ]
+                [(= state 2) 
+                    (set-state 3)
+                ]
+
+                [(= state 3) 
+                    (set-state 0)
+                ]
+            )
+        )
+
         (define (draw-lights)
             (define light-x (+ x 40))
             (define red-y (+ y 15))

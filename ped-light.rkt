@@ -40,6 +40,14 @@
             (refresh-lights)
         )
 
+
+        (define/public (next-state) 
+            (cond 
+                [(= state 0) (set-state 1)]
+                [(= state 1) (set-state 0)]
+            )
+        )
+
         ;; Method used to refresh the lights (re-draw) them.
         ;; Used when states are changed
         (define (refresh-lights)
