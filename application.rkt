@@ -84,7 +84,8 @@
   
 
 
-(define (next-state light)
+(define (change-state light state)
+  (set! states (dict-set states light state))
   (refresh-lights)
 )
 
@@ -150,6 +151,29 @@
     [callback stop-simulation]
 ))
 
+(define (switch-all-to-red) 
+  (thread (λ () 
+    ;; Checks for light 1 state and switches it off
+    (while (not (= (dict-ref states 'light1) 0)) (λ () 
+      (change-state 'light1 (send light-1 next-state (dict-ref states 'light1)))
+      (sleep 2)
+    ))
+
+    ;; Checks for light 2 state and switches it off
+    (while (not (= (dict-ref states 'light2) 0)) (λ () 
+      (change-state 'light2 (send light-2 next-state (dict-ref states 'light2)))
+      (sleep 2)
+    ))
+
+    ;; Checks for light 2 state and switches it off
+    (while (not (= (dict-ref states 'light3) 0)) (λ () 
+      (change-state 'light3 (send light-1 next-state (dict-ref states 'light3)))
+      (sleep 2)
+    ))
+  ))
+  
+)
+
 ;; Pedestrain wait button
 ;; Pressing this button will turn on the pedestrain
 ;; wait light and wait for 5 seconds for all traffic
@@ -161,7 +185,8 @@
   [callback (λ (button event) 
       (change-state 'pedwaitlight 1)
       (sleep/yield 5)
-      ;; (switch-all-to-red)
+      (thread-suspend main-thread)
+      (switch-all-to-red)
       (change-state 'pedwaitlight 0)
       (change-state 'pedlight 1)
   )]
