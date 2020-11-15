@@ -44,16 +44,15 @@
             (draw-lights)
         )
 
-
-        (define/public next-state (λ (cs) 
+        (define/public (next-state cs)
             (cond 
                 [(= cs 0) 1]
                 [(= cs 1) 2]
                 [(= cs 2) 3]
-                [(= cs 4) 0]
+                [(= cs 3) 0]
             )
-        ))
-
+        
+        )
 
         (define (draw-lights)
             (define light-x (+ x 40))

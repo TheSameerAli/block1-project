@@ -27,6 +27,8 @@
 (define ped-light (new ped-light% [dc dc] [x 900] [y 200] [state 0]))
 (define wait-light (new wait-light% [dc dc] [x 900] [y 390] [state 0]))
 
+(define transition-time 2) ;; Time it takes from get from one state to another if the state is non-green
+
 
 ;; Main application functionality
 (define is-running #f)
@@ -46,38 +48,40 @@
     (body)
     (while condition body))) ;; recalls the while function
 
-(define main-thread (thread (λ () (println "main-thread-initialised"))))
+(define traffic-light-thread (thread (λ () (println "traffic-light-thread-initialised"))))
+(define ped-crossing-thread (thread (λ () (println "ped-crossing-thread-initialised"))))
 
-(define (start-loop)
-  (set! main-thread (thread (λ () 
+
+(define (start-traffic-light-loop)
+  (set! traffic-light-thread (thread (λ () 
 
       (while (and is-running #t) (λ () 
         (change-state 'light1 1)
-        (sleep 2)
+        (sleep transition-time)
         (change-state 'light1 2)
         (sleep 5)
         (change-state 'light1 3)
-        (sleep 2)
+        (sleep transition-time)
         (change-state 'light1 0)
-        (sleep 2)
+        (sleep transition-time)
 
         (change-state 'light2 1)
-        (sleep 2)
+        (sleep transition-time)
         (change-state 'light2 2)
         (sleep 5)
         (change-state 'light2 3)
-        (sleep 2)
+        (sleep transition-time)
         (change-state 'light2 0)
-        (sleep 2)
+        (sleep transition-time)
 
         (change-state 'light3 1)
-        (sleep 2)
+        (sleep transition-time)
         (change-state 'light3 2)
         (sleep 5)
         (change-state 'light3 3)
-        (sleep 2)
+        (sleep transition-time)
         (change-state 'light3 0)
-        (sleep 2)
+        (sleep transition-time)
       ))
     ))
 ))
@@ -85,8 +89,17 @@
 
 
 (define (change-state light state)
-  (set! states (dict-set states light state))
-  (refresh-lights)
+  (println (string-append (~v light) " >> " (~v state)))
+  (cond 
+    [(number? state) 
+        (set! states (dict-set states light state))
+        (refresh-lights)
+    ]
+    [else 
+      (println "State can only be a number")
+    ]
+  )
+  
 )
 
 (define (refresh-lights) 
@@ -99,13 +112,13 @@
 
 (define start-simulation (λ (button event) 
     (set! is-running #t)
-    (start-loop)
+    (start-traffic-light-loop)
   )  
 )
 
 (define stop-simulation (λ (button event) 
     (set! is-running #f)
-    (thread-suspend main-thread)
+    (thread-suspend traffic-light-thread)
     (reset-states)
   )
 )
@@ -151,27 +164,59 @@
     [callback stop-simulation]
 ))
 
-(define (switch-all-to-red) 
-  (thread (λ () 
+(define (not-all-red-yet)
+  (println (and (not (= (dict-ref states 'light1) 0)) (not (= (dict-ref states 'light2) 0))))
+  (println (not (= (dict-ref states 'light3) 0)))
+  (cond 
+    [
+      (and 
+        (and (not (= (dict-ref states 'light1) 0)) (not (= (dict-ref states 'light2) 0)))
+        (not (= (dict-ref states 'light3) 0))
+      )
+      
+       #t]
+    [else #f]
+  )
+)
+
+(define (switch-all-to-red callback) 
+  (thread (λ ()
+
+    (while (and (not-all-red-yet) #t) 
+      (println (not-all-red-yet))
+      (sleep 1)
+    )
+
     ;; Checks for light 1 state and switches it off
     (while (not (= (dict-ref states 'light1) 0)) (λ () 
       (change-state 'light1 (send light-1 next-state (dict-ref states 'light1)))
-      (sleep 2)
+      (sleep transition-time)
     ))
 
     ;; Checks for light 2 state and switches it off
     (while (not (= (dict-ref states 'light2) 0)) (λ () 
       (change-state 'light2 (send light-2 next-state (dict-ref states 'light2)))
-      (sleep 2)
+      (sleep transition-time)
     ))
 
-    ;; Checks for light 2 state and switches it off
+    ;; Checks for light 3 state and switches it off
     (while (not (= (dict-ref states 'light3) 0)) (λ () 
-      (change-state 'light3 (send light-1 next-state (dict-ref states 'light3)))
-      (sleep 2)
+      (change-state 'light3 (send light-3 next-state (dict-ref states 'light3)))
+      (sleep transition-time)
     ))
   ))
   
+)
+
+(define (start-ped-crossing) 
+    (set! ped-crossing-thread (thread (λ ()
+        (change-state 'pedlight 1)
+        (sleep 5)
+        (change-state `pedlight 0)
+        (sleep transition-time)
+        (start-traffic-light-loop)
+        (thread-suspend ped-crossing-thread)
+    )))
 )
 
 ;; Pedestrain wait button
@@ -185,10 +230,13 @@
   [callback (λ (button event) 
       (change-state 'pedwaitlight 1)
       (sleep/yield 5)
-      (thread-suspend main-thread)
-      (switch-all-to-red)
-      (change-state 'pedwaitlight 0)
-      (change-state 'pedlight 1)
+      (thread-suspend traffic-light-thread)
+      (switch-all-to-red (λ () 
+        ;; Once all the traffic lights are switched to red
+        (change-state 'pedwaitlight 0)
+        (start-ped-crossing)
+      ))
+      
   )]
 ))
 

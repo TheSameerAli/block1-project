@@ -33,12 +33,12 @@
             (refresh-lights)
         )
 
-        (define/public next-state (λ (cs) 
+        (define/public (next-state cs) 
             (cond 
                 [(= cs 0) 1]
                 [(= cs 1) 2]
             )
-        ))
+        )
 
 
         (define (refresh-lights)
