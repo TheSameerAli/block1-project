@@ -56,6 +56,7 @@
 
 (define traffic-light-thread (thread (λ () (println "traffic-light-thread-initialised"))))
 (define ped-crossing-thread (thread (λ () (println "ped-crossing-thread-initialised"))))
+(define switch-all-to-red-thread (thread (λ () (println "switch-all-to-red-thread-initialised"))))
 
 
 (define (start-traffic-light-loop)
@@ -125,6 +126,9 @@
 (define stop-simulation (λ (button event) 
     (set! is-running #f)
     (thread-suspend traffic-light-thread)
+    (thread-suspend ped-crossing-thread)
+    (thread-suspend switch-all-to-red-thread)
+  
     (reset-states)
   )
 )
@@ -180,7 +184,7 @@
 )
 
 (define (switch-all-to-red callback) 
-  (thread (λ ()
+  (set! switch-all-to-red-thread (thread (λ ()
 
     (while-loop (and (not (are-all-red)) #t) (λ ()
         
@@ -206,11 +210,13 @@
       (callback)
   
     )
-  )
+  ))
 )
 
 (define (start-ped-crossing) 
     (thread-suspend traffic-light-thread)
+    (thread-suspend switch-all-to-red-thread)
+
     (set! ped-crossing-thread (thread (λ ()
         (change-state 'pedlight 1)
         (sleep 5)
