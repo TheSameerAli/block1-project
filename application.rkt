@@ -186,7 +186,7 @@
 (define (switch-all-to-red callback) 
   (set! switch-all-to-red-thread (thread (λ ()
 
-    (while-loop (and (not (are-all-red)) #t) (λ ()
+      (while-loop (and (not (are-all-red)) #t) (λ ()
         
         ;; Checks for light 1 state and switches it off
         (while-loop (and (not (= (dict-ref states 'light1) 0)) #t) (λ () 
@@ -215,7 +215,6 @@
 
 (define (start-ped-crossing) 
     (thread-suspend traffic-light-thread)
-    (thread-suspend switch-all-to-red-thread)
 
     (set! ped-crossing-thread (thread (λ ()
         (change-state 'pedlight 1)
