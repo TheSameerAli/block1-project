@@ -48,6 +48,12 @@
     (body)
     (while condition body))) ;; recalls the while function
 
+(define-syntax-rule (while-loop condition body)   
+  (let loop ()
+    (when condition
+      (body)
+      (loop))))
+
 (define traffic-light-thread (thread (λ () (println "traffic-light-thread-initialised"))))
 (define ped-crossing-thread (thread (λ () (println "ped-crossing-thread-initialised"))))
 
@@ -155,6 +161,8 @@
   [callback start-simulation]
 ))
 
+
+
 ;; Stop and Reset button
 ;; This will stop and reset the current state
 ;; of the simulation
@@ -164,51 +172,45 @@
     [callback stop-simulation]
 ))
 
-(define (not-all-red-yet)
-  (println (and (not (= (dict-ref states 'light1) 0)) (not (= (dict-ref states 'light2) 0))))
-  (println (not (= (dict-ref states 'light3) 0)))
-  (cond 
-    [
-      (and 
-        (and (not (= (dict-ref states 'light1) 0)) (not (= (dict-ref states 'light2) 0)))
-        (not (= (dict-ref states 'light3) 0))
-      )
-      
-       #t]
-    [else #f]
-  )
+(define (are-all-red)
+  (and 
+  (= (dict-ref states 'light1) 0) 
+  (= (dict-ref states 'light2) 0) 
+  (= (dict-ref states 'light3) 0))
 )
 
 (define (switch-all-to-red callback) 
   (thread (λ ()
 
-    (while (and (not-all-red-yet) #t) 
-      (println (not-all-red-yet))
-      (sleep 1)
-    )
+    (while-loop (and (not (are-all-red)) #t) (λ ()
+        
+        ;; Checks for light 1 state and switches it off
+        (while-loop (and (not (= (dict-ref states 'light1) 0)) #t) (λ () 
+          (change-state 'light1 (send light-1 next-state (dict-ref states 'light1)))
+          (sleep transition-time)
+        ))
 
-    ;; Checks for light 1 state and switches it off
-    (while (not (= (dict-ref states 'light1) 0)) (λ () 
-      (change-state 'light1 (send light-1 next-state (dict-ref states 'light1)))
-      (sleep transition-time)
-    ))
+        ;; Checks for light 2 state and switches it off
+        (while-loop (not (= (dict-ref states 'light2) 0)) (λ () 
+          (change-state 'light2 (send light-2 next-state (dict-ref states 'light2)))
+          (sleep transition-time)
+        ))
 
-    ;; Checks for light 2 state and switches it off
-    (while (not (= (dict-ref states 'light2) 0)) (λ () 
-      (change-state 'light2 (send light-2 next-state (dict-ref states 'light2)))
-      (sleep transition-time)
-    ))
+        ;; Checks for light 3 state and switches it off
+        (while-loop (not (= (dict-ref states 'light3) 0)) (λ () 
+          (change-state 'light3 (send light-3 next-state (dict-ref states 'light3)))
+          (sleep transition-time)
+        ))
 
-    ;; Checks for light 3 state and switches it off
-    (while (not (= (dict-ref states 'light3) 0)) (λ () 
-      (change-state 'light3 (send light-3 next-state (dict-ref states 'light3)))
-      (sleep transition-time)
-    ))
-  ))
+      ))
+      (callback)
   
+    )
+  )
 )
 
 (define (start-ped-crossing) 
+    (thread-suspend traffic-light-thread)
     (set! ped-crossing-thread (thread (λ ()
         (change-state 'pedlight 1)
         (sleep 5)
