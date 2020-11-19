@@ -27,8 +27,15 @@
 (define ped-light (new ped-light% [dc dc] [x 900] [y 200] [state 0]))
 (define wait-light (new wait-light% [dc dc] [x 900] [y 390] [state 0]))
 
+(define traffic-light-list (list 'light1 'light2 'light3))
+
 (define transition-time 2) ;; Time it takes from get from one state to another if the state is non-green
 
+; This variable stores which the last traffic light that showed green
+; before the pedestrain stop light kicked in. This will help continue 
+; the sequence it left from.
+; Initial state is 'light1 as that is where it start from
+(define last-traffic-light 0) 
 
 ;; Main application functionality
 (define is-running #f)
@@ -42,12 +49,7 @@
   (pedwaitlight . 0) ;; State of Pedestrain wait light
 ))
 
-;; while loop recusive function
-(define (while condition body) ;; defines the while procedure
-  (when condition ;; checks if the condition is true
-    (body)
-    (while condition body))) ;; recalls the while function
-
+;; Comment the below
 (define-syntax-rule (while-loop condition body)   
   (let loop ()
     (when condition
@@ -58,37 +60,44 @@
 (define ped-crossing-thread (thread (λ () (println "ped-crossing-thread-initialised"))))
 (define switch-all-to-red-thread (thread (λ () (println "switch-all-to-red-thread-initialised"))))
 
+;; The function below takes the last green light
+;; and reorders the traffic light list to put
+;; the light that is meant to run after the last light
+;; in the first order to run next. This fixes the issue
+;; which can let pedestrain wait light restart the whole sequence
+;; of traffic light
+(define (put-last-light-first) 
+  (while-loop (not (equal? light (first traffic-light-list))) (λ () 
+      (set! traffic-light-list (append (rest traffic-light-list) (list (first (reverse traffic-light-list)))))
+    )
+  )
+  (set! traffic-light-list (append (rest traffic-light-list) (list (first traffic-light-list))))
+)
 
 (define (start-traffic-light-loop)
   (set! traffic-light-thread (thread (λ () 
 
-      (while (and is-running #t) (λ () 
-        (change-state 'light1 1)
-        (sleep transition-time)
-        (change-state 'light1 2)
-        (sleep 5)
-        (change-state 'light1 3)
-        (sleep transition-time)
-        (change-state 'light1 0)
-        (sleep transition-time)
-
-        (change-state 'light2 1)
-        (sleep transition-time)
-        (change-state 'light2 2)
-        (sleep 5)
-        (change-state 'light2 3)
-        (sleep transition-time)
-        (change-state 'light2 0)
-        (sleep transition-time)
-
-        (change-state 'light3 1)
-        (sleep transition-time)
-        (change-state 'light3 2)
-        (sleep 5)
-        (change-state 'light3 3)
-        (sleep transition-time)
-        (change-state 'light3 0)
-        (sleep transition-time)
+      (while-loop (and is-running #t) (λ () 
+        (cond 
+          [(not (and (number? last-traffic-light) (= last-traffic-light 0)))
+            (put-last-light-first)
+          ]
+        )
+        (println last-traffic-light)
+        (println traffic-light-list)
+        (for ([traffic-light traffic-light-list])
+          ;; Runs the traffic light loop
+          ;; going from state 1->2->3->0
+          (change-state traffic-light 1)
+          (sleep transition-time)
+          (change-state traffic-light 2)
+          (set! last-traffic-light traffic-light) ;; Sets the current traffic light to last traffic light state
+          (sleep 5)
+          (change-state traffic-light 3)
+          (sleep transition-time)
+          (change-state traffic-light 0)
+          (sleep transition-time)
+        )
       ))
     ))
 ))
@@ -96,7 +105,7 @@
 
 
 (define (change-state light state)
-  (println (string-append (~v light) " >> " (~v state)))
+  ;(println (string-append (~v light) " >> " (~v state)))
   (cond 
     [(number? state) 
         (set! states (dict-set states light state))
