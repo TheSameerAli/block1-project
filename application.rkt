@@ -40,6 +40,13 @@
 ;; Main application functionality
 (define is-running #f)
 
+;; Saves the current time of the day
+;; This determins how many seconds light stays green for
+;; depending on the time of the day
+;; Day = 5 seconds, Night = 10 seconds
+;; 0 = Day , 1 = Night
+(define current-time 0)
+
 ;; Initial states
 (define states '(
   (light1 . 0) ;; State of traffic light 1
@@ -67,7 +74,7 @@
 ;; which can let pedestrain wait light restart the whole sequence
 ;; of traffic light
 (define (put-last-light-first) 
-  (while-loop (not (equal? light (first traffic-light-list))) (λ () 
+  (while-loop (not (equal? last-traffic-light (first traffic-light-list))) (λ () 
       (set! traffic-light-list (append (rest traffic-light-list) (list (first (reverse traffic-light-list)))))
     )
   )
@@ -83,8 +90,6 @@
             (put-last-light-first)
           ]
         )
-        (println last-traffic-light)
-        (println traffic-light-list)
         (for ([traffic-light traffic-light-list])
           ;; Runs the traffic light loop
           ;; going from state 1->2->3->0
@@ -92,7 +97,14 @@
           (sleep transition-time)
           (change-state traffic-light 2)
           (set! last-traffic-light traffic-light) ;; Sets the current traffic light to last traffic light state
-          (sleep 5)
+          (cond 
+            [(= current-time 0) 
+              (sleep 5)
+            ]
+            [(= current-time 1) 
+              (sleep 10)
+            ]
+          )
           (change-state traffic-light 3)
           (sleep transition-time)
           (change-state traffic-light 0)
@@ -159,8 +171,21 @@
   (reset-states)
 )
 
-(define my-box
+(define change-time-choice (λ (choice event)
+  (cond 
+    [(or (= (send choice get-selection) 0) (= (send choice get-selection) 1))
+      (set! current-time (send choice get-selection))
+    ]
+    [else 
+      (println "Invalid time selection")
+    ]
+  )
+))
+
+
+(define time-choice
   ( new choice% [ parent frame ]
+       [callback change-time-choice]
        [label " SELECT "]
        [choices (list "DAY" "NIGHT")]))
 
@@ -234,6 +259,7 @@
         (thread-suspend ped-crossing-thread)
     )))
 )
+
 
 ;; Pedestrain wait button
 ;; Pressing this button will turn on the pedestrain
