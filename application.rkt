@@ -81,6 +81,7 @@
 ;; control what is happening during the application is running.
 ;; These are then used to determine how to run the application
 ;; if the state was in a certain position.
+;; #################################################
 
 ; This variable stores which the last traffic light that showed green
 ; before the pedestrain stop light kicked in. This will help continue 
@@ -257,7 +258,7 @@
     (thread-suspend switch-all-to-red-thread)
     (thread-suspend ped-wait-button-thread)
 
-    (last-traffic-light 0)
+    (set! last-traffic-light 0)
   
     (reset-states)
   )
@@ -314,6 +315,22 @@
   (= (dict-ref states 'light3) 0))
 )
 
+(define (get-light-object-from-dict-ref dict-light)
+  (cond 
+    [(equal? dict-light 'light1)
+      light-1
+    ]
+
+    [(equal? dict-light 'light2)
+      light-2
+    ]
+
+    [(equal? dict-light 'light3)
+      light-3
+    ]
+  )
+)
+
 ;; The procedure below switches all the traffic lights
 ;; to red in order. The procedure checks for each traffic lights
 ;; and run a sequence to switch the light to red if it's not already.
@@ -322,30 +339,15 @@
 (define (switch-all-to-red callback) 
   (set! switch-all-to-red-thread (thread (λ () ;; Starts the thread to prevent GUI from freezing
 
-
-      ;; TODO:  Optimise the code below
       (while (and (not (are-all-red)) #t) (λ () ;; While not all traffic light are red, the codeblock below runs
-        ;; Checks for light 1 state and switches it off
-        (while (and (not (= (dict-ref states 'light1) 0)) #t) (λ () 
-          (change-state 'light1 (send light-1 next-state (dict-ref states 'light1))) ;; Switches to the next state in sequence
-          (sleep transition-time) ;; Wait for a reasonable time before repeating the process
-        ))
-
-        ;; Checks for light 2 state and switches it off
-        (while (not (= (dict-ref states 'light2) 0)) (λ () 
-          (change-state 'light2 (send light-2 next-state (dict-ref states 'light2)))
-          (sleep transition-time)
-        ))
-
-        ;; Checks for light 3 state and switches it off
-        (while (not (= (dict-ref states 'light3) 0)) (λ () 
-          (change-state 'light3 (send light-3 next-state (dict-ref states 'light3)))
-          (sleep transition-time)
-        ))
-
+        (for ([traffic-light traffic-light-list]) ; Run through each traffic light and turn them red
+            (while (and (not (= (dict-ref states traffic-light) 0)) #t) (λ () 
+              (change-state traffic-light (send (get-light-object-from-dict-ref traffic-light) next-state (dict-ref states traffic-light))) ;; Switches to the next state in sequence
+              (sleep transition-time) ;; Wait for a reasonable time before repeating the process
+            ))
+        )
       ))
       (callback)
-  
     )
   ))
 )
