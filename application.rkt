@@ -134,6 +134,7 @@
 ;; of traffic light
 (define (put-last-light-first) 
   (while (not (equal? last-traffic-light (first traffic-light-list))) (λ () 
+      ;; [light1, light2, light3] -> [light2, light3, light1] -> [light3, light1, light2]
       (set! traffic-light-list (append (rest traffic-light-list) (list (first (reverse traffic-light-list)))))
     )
   )
@@ -155,33 +156,43 @@
 
 
 ;; ############### Main Traffic Light Simulation Logic ######################
-(define (start-traffic-light-loop)
-  (set! traffic-light-thread (thread (λ () 
 
-      (while (and is-running #t) (λ () 
+;; The procedure below kicks in the traffic light simulation loop.
+;; This procedure starts the traffic light loops and keeps it running
+;; forever until interrupted by the user in any form.
+(define (start-traffic-light-loop)
+  (set! traffic-light-thread (thread (λ ()  ;; Sets this loop to a thread to prevent GUI freezing
+
+      (while (and is-running #t) (λ () ;; While "is-running" variable is true
         (cond 
+
+          ;; The condition below checks if the last-traffic-light was not 0
+          ;; If the traffic light is 0, that means it's either the first time 
+          ;; running the simulation or running it from reset state.
+          ;; If it's not 0, it takes the last traffic light green and continue
+          ;; with the next one.
           [(not (and (number? last-traffic-light) (= last-traffic-light 0)))
             (put-last-light-first)
           ]
         )
-        (for ([traffic-light traffic-light-list])
+        (for ([traffic-light traffic-light-list]) ;; For loop to go through all traffic lights
           ;; Runs the traffic light loop
           ;; going from state 1->2->3->0
-          (change-state traffic-light 1)
+          (change-state traffic-light 1) ;; Changes the state to Red+Amber
           (sleep transition-time)
-          (change-state traffic-light 2)
+          (change-state traffic-light 2) ;; Changes the state to Green
           (set! last-traffic-light traffic-light) ;; Sets the current traffic light to last traffic light state
           (cond 
-            [(= current-time 0) 
-              (sleep 5)
+            [(= current-time 0) ;; Checks the current-time selected by user. If Day: 
+              (sleep 5) ;; Then wait at green for 5 seconds
             ]
-            [(= current-time 1) 
-              (sleep 10)
+            [(= current-time 1) ;; If Night:
+              (sleep 10) ;; Then wait at green for 10 seconds
             ]
           )
-          (change-state traffic-light 3)
+          (change-state traffic-light 3) ;; Change the state to Amber
           (sleep transition-time)
-          (change-state traffic-light 0)
+          (change-state traffic-light 0) ;; Change the state to Red
           (sleep transition-time)
         )
       ))
@@ -189,9 +200,11 @@
 ))
   
 
-
+;; The procedure below is responsible
+;; for taking in light and state as parameters
+;; and changing them
 (define (change-state light state)
-  (println (string-append (~v light) " >> " (~v state)))
+  (println (string-append (~v light) " >> " (~v state))) ;; Prints the state of light
   (cond 
     [(number? state) 
         (set! states (dict-set states light state))
@@ -204,6 +217,12 @@
   
 )
 
+;; Refresh lights procedure is responsible
+;; for re-drawing the lights on the screen
+;; once their state has been changed
+;; This works by calling a method in each of the light
+;; class to change their state which automatically
+;; redraws the light on the screen
 (define (refresh-lights) 
   (send light-1 set-state (dict-ref states 'light1))
   (send light-2 set-state (dict-ref states 'light2))
@@ -212,12 +231,25 @@
   (send wait-light set-state (dict-ref states 'pedwaitlight))
 )
 
+;; ########## Call back procedures ###############
+;; Description:
+;; The procedures below are the callback procedures
+;; to run when triggered by user interaction
+;; ############################################
+
+;; The procedure below runs when the "start simulation"
+;; button is clicked. It sets "is-running" variable to true
+;; and starts the traffic light loop.
 (define start-simulation (λ (button event) 
     (set! is-running #t)
     (start-traffic-light-loop)
   )  
 )
 
+;; The procedure belows run when the "stop and reset simulation"
+;; button is clocked. This procedure stop all the running threads
+;; and sets the "is-running" variable to false. It also resets the 
+;; program states such as last-traffic-light and light states.
 (define stop-and-reset-simulation (λ (button event) 
     (set! is-running #f)
     (thread-suspend traffic-light-thread)
@@ -231,6 +263,9 @@
   )
 )
 
+;; The procedure below is responisble for resetting
+;; states of all the lights to 0. It does this by calling
+;; a set state method in each of the light object.
 (define (reset-states) 
   (send light-1 set-state 0)
   (send light-2 set-state 0)
@@ -239,6 +274,9 @@
   (send wait-light set-state 0)
 )
 
+;; The procedure below is responsible for rendering
+;; the traffic lights on the screen by calling the
+;; render method from each traffic light and drawable objects
 (define (initiate-traffic-lights dc)
   (send scene render)
   (send light-1 render)
@@ -249,6 +287,10 @@
   (reset-states)
 )
 
+;; The method below runs when the user changes the option 
+;; for the time of day dropdown menu.
+;; This procedure sets the user choice to the global "current-time"
+;; variable.
 (define change-time-choice (λ (choice event)
   (cond 
     [(or (= (send choice get-selection) 0) (= (send choice get-selection) 1))
@@ -260,10 +302,11 @@
   )
 ))
 
+;; ############ End of callback procedures ##################
 
 
-
-
+;; The function below checks if all the traffic
+;; lights are red and return #t or #f based on the result.
 (define (are-all-red)
   (and 
   (= (dict-ref states 'light1) 0) 
@@ -271,15 +314,21 @@
   (= (dict-ref states 'light3) 0))
 )
 
+;; The procedure below switches all the traffic lights
+;; to red in order. The procedure checks for each traffic lights
+;; and run a sequence to switch the light to red if it's not already.
+;; This is run to get the traffic lights turned to red in order for the pedestrian
+;; to cross the street.
 (define (switch-all-to-red callback) 
-  (set! switch-all-to-red-thread (thread (λ ()
+  (set! switch-all-to-red-thread (thread (λ () ;; Starts the thread to prevent GUI from freezing
 
-      (while (and (not (are-all-red)) #t) (λ ()
-        
+
+      ;; TODO:  Optimise the code below
+      (while (and (not (are-all-red)) #t) (λ () ;; While not all traffic light are red, the codeblock below runs
         ;; Checks for light 1 state and switches it off
         (while (and (not (= (dict-ref states 'light1) 0)) #t) (λ () 
-          (change-state 'light1 (send light-1 next-state (dict-ref states 'light1)))
-          (sleep transition-time)
+          (change-state 'light1 (send light-1 next-state (dict-ref states 'light1))) ;; Switches to the next state in sequence
+          (sleep transition-time) ;; Wait for a reasonable time before repeating the process
         ))
 
         ;; Checks for light 2 state and switches it off
@@ -301,16 +350,18 @@
   ))
 )
 
+;; The procedure belows is run when all the traffic lights
+;; are turned red and pedestrian are ready to cross.
 (define (start-ped-crossing) 
-    (thread-suspend traffic-light-thread)
+    (thread-suspend traffic-light-thread) ;; Suspends the main traffic light loop
 
     (set! ped-crossing-thread (thread (λ ()
-        (change-state 'pedlight 1)
-        (sleep 5)
-        (change-state `pedlight 0)
+        (change-state 'pedlight 1) ;; Changes the pedestrian light to green
+        (sleep 5) ;; Wait for 5 seconds for pedestrain to cross
+        (change-state `pedlight 0) ;; Change the pedestrain light to red
         (sleep transition-time)
-        (start-traffic-light-loop)
-        (thread-suspend ped-crossing-thread)
+        (start-traffic-light-loop) ;; Starts the traffic light loop again
+        (thread-suspend ped-crossing-thread) ;; Suspends this thread to stop pedestrain light from changing
     )))
 )
 
@@ -378,6 +429,8 @@
 
 
 ;; Runs the main application
+;; by showing the window and calling 
+;; the initiate traffic lights procedure
 (define (start-app) 
     (send frame show #t)
     (initiate-traffic-lights dc)
