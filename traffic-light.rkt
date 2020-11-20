@@ -24,7 +24,7 @@
 (define traffic-light%
     (class object%
         (super-new)
-        (init-field dc x y state)
+        (init-field dc x y state label)
 
         (define no-pen (make-object pen% "BLACK" 1 'transparent))
         (define no-brush (make-object brush% "BLACK" 'transparent))
@@ -108,6 +108,16 @@
 
             ;; Calls the procedure to draw the lights
             (draw-lights)
+
+            ;; Calls the procedure to draw labels
+            (draw-label)
+        )
+
+        (define (draw-label)
+            (send dc set-font (make-font #:size 18 #:family 'default
+                             #:weight 'bold))
+            (send dc set-text-foreground (make-object color% 0 0 0))
+            (send dc draw-text label (+ x 50) (- y 40))
         )
 
         (define (draw-box) 

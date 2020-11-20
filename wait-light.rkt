@@ -1,6 +1,6 @@
 #lang racket/gui
 
-;; #### Main Traffic Light Component #####
+;; #### Pedestrain Wait Light Component #####
 ;; Authors: Sameer Ali, Jeremy Arland
 ;; #############################################
 ;;                DESCRIPTION
@@ -46,9 +46,9 @@
         )
 
         (define (draw-lights)
-            (define light-x (+ x 15))
+            (define light-x (+ x 5))
             (define light-y (+ y 10))
-            (send dc set-font (make-font #:size 24 #:family 'default
+            (send dc set-font (make-font #:size 22 #:family 'default
                              #:weight 'bold))
         
             ;; Draws the red light (only if state is 0)
@@ -82,7 +82,7 @@
             ;; for traffic lights (a box)
             (send dc set-pen black-pen)
             (send dc set-brush black-brush)
-            (send dc draw-rectangle x y 150 60)
+            (send dc draw-rectangle x y 120 60)
         )
     )
 )
