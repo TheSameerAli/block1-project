@@ -34,7 +34,7 @@
 ;; a device context (dc) which allows us to draw on the screen
 (define canvas (new canvas% [parent frame] 
                             [paint-callback (λ (can dc) 
-                            (initiate-traffic-lights dc))]))
+                            (initiate-traffic-lights))]))
 ;; Creating a device context. This is used by Racket GUI library
 ;; to draw on the canvas
 (define dc (send canvas get-dc))
@@ -136,7 +136,7 @@
 (define (put-last-light-first) 
   (while (not (equal? last-traffic-light (first traffic-light-list))) (λ () 
       ;; [light1, light2, light3] -> [light2, light3, light1] -> [light3, light1, light2]
-      (set! traffic-light-list (append (rest traffic-light-list) (list (first (reverse traffic-light-list)))))
+      (set! traffic-light-list (append (rest traffic-light-list) (list (first traffic-light-list))))
     )
   )
   (set! traffic-light-list (append (rest traffic-light-list) (list (first traffic-light-list))))
@@ -278,7 +278,7 @@
 ;; The procedure below is responsible for rendering
 ;; the traffic lights on the screen by calling the
 ;; render method from each traffic light and drawable objects
-(define (initiate-traffic-lights dc)
+(define (initiate-traffic-lights)
   (send scene render)
   (send light-1 render)
   (send light-2 render)
@@ -435,6 +435,6 @@
 ;; the initiate traffic lights procedure
 (define (start-app) 
     (send frame show #t)
-    (initiate-traffic-lights dc)
+    (initiate-traffic-lights)
     
 )
