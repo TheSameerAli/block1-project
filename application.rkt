@@ -53,9 +53,9 @@
 ;; Defining all the drawable objects in the program.
 ;; This include anything that is displayed on the screen (in white background)
 ;; Includes: Traffic Lights, Pedestrain Lights, Pedestrain Wait Light and scene info (road name)
-(define light-1 (new traffic-light% [dc dc] [x 100] [y 120] [state 0] [label "(X)"]))
-(define light-2 (new traffic-light% [dc dc] [x 300] [y 220] [state 0] [label "(Y)"]))
-(define light-3 (new traffic-light% [dc dc] [x 500] [y 120] [state 0] [label "(Z)"]))
+(define light-1 (new traffic-light% [dc dc] [x 100] [y 120] [state 0] [label "(Y)"]))
+(define light-2 (new traffic-light% [dc dc] [x 300] [y 220] [state 0] [label "(Z)"]))
+(define light-3 (new traffic-light% [dc dc] [x 500] [y 120] [state 0] [label "(X)"]))
 (define ped-light (new ped-light% [dc dc] [x 900] [y 120] [state 0]))
 (define wait-light (new wait-light% [dc dc] [x 900] [y 310] [state 0]))
 (define scene (new scene% [dc dc]))
