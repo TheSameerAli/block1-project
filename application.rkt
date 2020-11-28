@@ -242,6 +242,7 @@
 ;; button is clicked. It sets "is-running" variable to true
 ;; and starts the traffic light loop.
 (define start-simulation (λ (button event) 
+    (stop-and-reset-simulation button event)
     (set! is-running #t)
     (start-traffic-light-loop)
   )  
@@ -253,12 +254,19 @@
 ;; program states such as last-traffic-light and light states.
 (define stop-and-reset-simulation (λ (button event) 
     (set! is-running #f)
-    (thread-suspend traffic-light-thread)
-    (thread-suspend ped-crossing-thread)
-    (thread-suspend switch-all-to-red-thread)
-    (thread-suspend ped-wait-button-thread)
+    (kill-thread traffic-light-thread)
+    (kill-thread ped-crossing-thread)
+    (kill-thread switch-all-to-red-thread)
+    (kill-thread ped-wait-button-thread)
+
+    (set! traffic-light-thread (thread (λ () (println "traffic-light-thread-initialised"))))
+    (set! ped-crossing-thread (thread (λ () (println "ped-crossing-thread-initialised"))))
+    (set! ped-wait-button-thread (thread (λ () (println "ped-wait-button-thread-initialised"))))
+    (set! switch-all-to-red-thread (thread (λ () (println "switch-all-to-red-thread-initialised"))))
 
     (set! last-traffic-light 0)
+
+    (set! traffic-light-list (list 'light1 'light2 'light3))
   
     (reset-states)
   )
@@ -268,11 +276,11 @@
 ;; states of all the lights to 0. It does this by calling
 ;; a set state method in each of the light object.
 (define (reset-states) 
-  (send light-1 set-state 0)
-  (send light-2 set-state 0)
-  (send light-3 set-state 0)
-  (send ped-light set-state 0)
-  (send wait-light set-state 0)
+  (change-state 'light1 0)
+  (change-state 'light2 0)
+  (change-state 'light3 0)
+  (change-state 'pedlight 0)
+  (change-state 'pedwaitlight 0)
 )
 
 ;; The procedure below is responsible for rendering
@@ -355,7 +363,7 @@
 ;; The procedure belows is run when all the traffic lights
 ;; are turned red and pedestrian are ready to cross.
 (define (start-ped-crossing) 
-    (thread-suspend traffic-light-thread) ;; Suspends the main traffic light loop
+    (kill-thread traffic-light-thread) ;; kill the main traffic light loop
 
     (set! ped-crossing-thread (thread (λ ()
         (change-state 'pedlight 1) ;; Changes the pedestrian light to green
@@ -363,7 +371,7 @@
         (change-state `pedlight 0) ;; Change the pedestrain light to red
         (sleep transition-time)
         (start-traffic-light-loop) ;; Starts the traffic light loop again
-        (thread-suspend ped-crossing-thread) ;; Suspends this thread to stop pedestrain light from changing
+        (kill-thread ped-crossing-thread) ;; kill this thread to stop pedestrain light from changing
     )))
 )
 
@@ -412,10 +420,13 @@
   [parent buttons-pane]
   [label "Pedestrain Wait"]
   [callback (λ (button event) 
+      (kill-thread ped-wait-button-thread)
+      (kill-thread ped-crossing-thread)
+      (kill-thread switch-all-to-red-thread)
       (set! ped-wait-button-thread (thread (λ () 
           (change-state 'pedwaitlight 1)
           (sleep/yield 5)
-          (thread-suspend traffic-light-thread)
+          (kill-thread traffic-light-thread)
           (switch-all-to-red (λ () 
             ;; Once all the traffic lights are switched to red
             (change-state 'pedwaitlight 0)
